@@ -1,0 +1,139 @@
+<!--
+"""
+Nama : Muhammad Wahyu Syafi'uddin
+NIM  : L200210056
+"""
+-->
+
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <title>MQTT Web Socket Example</title>
+    <script src="./jquery.min.js"></script>
+    <script src="./paho-mqtt.js"></script>
+    <script type="text/javascript" charset="utf-8">
+
+        function createMqttClient(clientId, topic) {
+            const client = new Paho.Client("06e17a32c5744a7a82b019fd767940b3.s2.eu.hivemq.cloud", Number(8884), "/mqtt", clientId);
+
+            client.connect({
+                onSuccess: function (data) {
+                    console.log("Connected to MQTT Broker for " + clientId);
+                    $("#" + clientId + " .connected").html("Yes");
+                    $("#" + clientId + " input[type=range].brightnessLevel").attr("disabled", null);
+                    client.subscribe(topic);
+                },
+                userName: 'luci.x666',
+                password: 'Pass1234',
+                reconnect: true,
+                useSSL: true
+            });
+
+            client.onConnectionLost = function onConnectionLost(data) {
+                if (data.errorCode !== 0) {
+                    console.log("Disconnected from MQTT Broker for " + clientId + " with error " + data.errorMessage);
+                } else {
+                    console.log("Disconnected from MQTT Broker for " + clientId);
+                }
+                $("#" + clientId + " .connected").html("No");
+                $("#" + clientId + " input[type=range].brightnessLevel").attr("disabled", "true");
+            };
+
+            client.onMessageArrived = function onMessageArrived(message) {
+                console.log("onMessageArrived:" + message.payloadString + " for topic " + message.destinationName);
+                var data = JSON.parse(message.payloadString);
+                $("#" + clientId + " input[type=range].brightnessLevel").val(data.level);
+                $("#" + clientId + " .brightnessLevel").html(data.level);
+            };
+
+            return client;
+        }
+
+        $(document).ready(function () {
+
+            // LED 0
+            const client0 = createMqttClient("led0", "led0");
+            $("#led0 .ledId").html("CLIENT_ID: <span>" + client0.clientId + "</span>");
+
+            // Event listener for Slider value changes.
+            $("#led0 input[type=range].brightnessLevel").on('input', function () {
+                const level = $(this).val();
+                const payload = { "level": level };
+                const message = new Paho.Message(JSON.stringify(payload));
+                message.destinationName = "led0";
+                message.qos = 2;
+                message.retained = true;
+                client0.send(message);
+            });
+
+            // LED 1
+            const client1 = createMqttClient("led1", "led1");
+            $("#led1 .ledId").html("CLIENT_ID: <span>" + client1.clientId + "</span>");
+
+            $("#led1 input[type=range].brightnessLevel").on('input', function () {
+                const level = $(this).val();
+                const payload = { "level": level };
+                const message = new Paho.Message(JSON.stringify(payload));
+                message.destinationName = "led1";
+                message.qos = 2;
+                message.retained = true;
+                client1.send(message);
+            });
+
+            // LED 2
+            const client2 = createMqttClient("led2", "led2");
+            $("#led2 .ledId").html("CLIENT_ID: <span>" + client2.clientId + "</span>");
+
+            $("#led2 input[type=range].brightnessLevel").on('input', function () {
+                const level = $(this).val();
+                const payload = { "level": level };
+                const message = new Paho.Message(JSON.stringify(payload));
+                message.destinationName = "led2";
+                message.qos = 2;
+                message.retained = true;
+                client2.send(message);
+            });
+        });
+    </script>
+</head>
+
+<body>
+    <h1>Submission UTS</h1>
+
+    <!-- LED 0 -->
+    <div id="led0">
+        <h4>LED 0</h4>
+        <div class="ledId">CLIENT_ID: <span></span></div>
+        Connected to MQTT Broker: <span class="connected">No</span>
+        <br><br>
+        Brightness <span class="brightnessLevel"></span>:<br>
+        <input type="range" min="0" max="100" value="0" disabled="true" class="brightnessLevel">
+        <hr>
+    </div>
+
+    <!-- LED 1 -->
+    <div id="led1">
+        <h4>LED 1</h4>
+        <div class="ledId">CLIENT_ID: <span></span></div>
+        Connected to MQTT Broker: <span class="connected">No</span>
+        <br><br>
+        Brightness <span class="brightnessLevel"></span>:<br>
+        <input type="range" min="0" max="100" value="0" disabled="true" class="brightnessLevel">
+        <hr>
+    </div>
+
+    <!-- LED 2 -->
+    <div id="led2">
+        <h4>LED 2</h4>
+        <div class="ledId">CLIENT_ID: <span></span></div>
+        Connected to MQTT Broker: <span class="connected">No</span>
+        <br><br>
+        Brightness <span class="brightnessLevel"></span>:<br>
+        <input type="range" min="0" max="100" value="0" disabled="true" class="brightnessLevel">
+        <hr>
+    </div>
+
+</body>
+
+</html>
